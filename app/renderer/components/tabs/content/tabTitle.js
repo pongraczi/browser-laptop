@@ -9,49 +9,48 @@ const {StyleSheet, css} = require('aphrodite/no-important')
 const ReduxComponent = require('../../reduxComponent')
 
 // State
-const tabContentState = require('../../../../common/state/tabContentState')
+const titleState = require('../../../../common/state/tabContentState/titleState')
+const frameStateUtil = require('../../../../../js/state/frameStateUtil')
+const tabUIState = require('../../../../common/state/tabUIState')
+const tabState = require('../../../../common/state/tabState')
 
 // Utils
-const platformUtil = require('../../../../common/lib/platformUtil')
-const isWindows = platformUtil.isWindows()
-const isDarwin = platformUtil.isDarwin()
+const {isWindows, isDarwin} = require('../../../../common/lib/platformUtil')
 
 // Styles
-const globalStyles = require('../../styles/global')
+const {fontSize} = require('../../styles/global')
 
 class TabTitle extends React.Component {
   mergeProps (state, ownProps) {
     const currentWindow = state.get('currentWindow')
     const frameKey = ownProps.frameKey
-    const tabIconColor = tabContentState.getTabIconColor(currentWindow, frameKey)
+    const tabId = frameStateUtil.getTabIdByFrameKey(currentWindow, frameKey)
 
     const props = {}
-    // used in renderer
-    props.enforceFontVisibility = isDarwin && tabIconColor === 'white'
-    props.tabIconColor = tabIconColor
-    props.displayTitle = tabContentState.getDisplayTitle(currentWindow, frameKey)
-
-    // used in functions
-    props.frameKey = frameKey
-
+    props.isWindows = isWindows()
+    props.isDarwin = isDarwin()
+    props.isPinned = tabState.isTabPinned(state, tabId)
+    props.showTabTitle = titleState.showTabTitle(currentWindow, frameKey)
+    props.displayTitle = titleState.getDisplayTitle(currentWindow, frameKey)
+    props.showReducedTabTitle = titleState.reduceTitleWidth(currentWindow, frameKey)
+    props.addExtraGutter = tabUIState.addExtraGutterToTitle(currentWindow, frameKey)
+    props.isTextWhite = tabUIState.checkIfTextColorBlackOrWhite(currentWindow, frameKey, 'white')
     return props
   }
 
   render () {
-    const titleStyles = StyleSheet.create({
-      gradientText: {
-        backgroundImage: `-webkit-linear-gradient(left,
-        ${this.props.tabIconColor} 90%, ${globalStyles.color.almostInvisible} 100%)`
-      }
-    })
+    if (this.props.isPinned || !this.props.showTabTitle) {
+      return null
+    }
 
     return <div data-test-id='tabTitle'
       className={css(
-        styles.tabTitle,
-        titleStyles.gradientText,
-        this.props.enforceFontVisibility && styles.enforceFontVisibility,
+        styles.tab__title,
+        this.props.addExtraGutter && styles.tab__title_extraGutter,
+        this.props.showReducedTabTitle && styles.tab__title_reducedSize,
+        (this.props.isDarwin && this.props.isTextWhite) && styles.tab__title_bold,
         // Windows specific style
-        isWindows && styles.tabTitleForWindows
+        this.props.isWindows && styles.tab__title_windows
       )}>
       {this.props.displayTitle}
     </div>
@@ -61,28 +60,31 @@ class TabTitle extends React.Component {
 module.exports = ReduxComponent.connect(TabTitle)
 
 const styles = StyleSheet.create({
-  tabTitle: {
-    display: 'flex',
-    flex: '1',
-    userSelect: 'none',
+  tab__title: {
     boxSizing: 'border-box',
-    fontSize: globalStyles.fontSize.tabTitle,
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
+    display: 'flex',
+    flex: 1,
+    userSelect: 'none',
+    fontSize: fontSize.tabTitle,
     lineHeight: '1.6',
-    padding: globalStyles.spacing.defaultTabPadding,
-    color: 'transparent',
-    WebkitBackgroundClip: 'text',
-    // prevents the title from being the target of mouse events.
-    pointerEvents: 'none'
+    minWidth: 0 // see https://stackoverflow.com/a/36247448/4902448
   },
 
-  enforceFontVisibility: {
-    fontWeight: '600'
+  tab__title_reducedSize: {
+    overflow: 'hidden',
+    marginRight: '24px'
   },
 
-  tabTitleForWindows: {
+  tab__title_bold: {
+    fontWeight: '400'
+  },
+
+  tab__title_windows: {
     fontWeight: '500',
-    fontSize: globalStyles.fontSize.tabTitle
+    fontSize: fontSize.tabTitle
+  },
+
+  tab__title_extraGutter: {
+    margin: '0 6px'
   }
 })

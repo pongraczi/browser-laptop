@@ -250,20 +250,6 @@ const windowActions = {
   },
 
   /**
-   * Dispatches a message to the store to set the tab breakpoint.
-   *
-   * @param {Object} frameKey - the frame key for the webview in question.
-   * @param {string} breakpoint - the tab breakpoint to change to
-   */
-  setTabBreakpoint: function (frameKey, breakpoint) {
-    dispatch({
-      actionType: windowConstants.WINDOW_SET_TAB_BREAKPOINT,
-      frameKey,
-      breakpoint
-    })
-  },
-
-  /**
    * Dispatches a message to the store to set the current tab hover state.
    *
    * @param {Object} frameKey - the frame key for the webview in question.
@@ -1176,6 +1162,14 @@ const windowActions = {
       actionType: windowConstants.WINDOW_ON_MORE_BOOKMARKS_MENU,
       bookmarks,
       top
+    })
+  },
+
+  setTabIntersectionState: function (frameKey, ratio) {
+    dispatch({
+      actionType: windowConstants.WINDOW_SET_TAB_CONTENT_INTERSECTION_STATE,
+      frameKey,
+      ratio
     })
   },
 

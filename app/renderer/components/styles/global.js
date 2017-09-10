@@ -2,24 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const {opacityIncreaseKeyframes} = require('./animations')
+const {opacityKeyrames} = require('./animations')
 
 /**
- * Historically this file includes styles with no defined criteria.
- * Imagine this file as a future reference for theming, in a way
- * that each component should be an object wrapping all properties
- * that would change in a dark mode, for example.
- *
- * Valid as well for things that needs to be fully global,
- * i.e. breakpoints, icons and zIndexes.
- *
- * Thus said, please take preference for inlined styles in the component itself.
- * If you really feel repetitve writing the same style for a given component,
- * consider including a variable inside component.
- *
+ * Use this file when the style you need
+ * is applied in more than one element, or depends on it
+ * Use theme.js file to include colors that can be customized
  * TODO:
  * remove unnecessary styles properties (as items get refactored)
- * Remove fully global items and take preference for component properties (@see button)
+ * migrate customizable options to theme.js
  */
 
 const globalStyles = {
@@ -27,31 +18,29 @@ const globalStyles = {
     `, "Helvetica Neue", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans"` +
     `, "Droid Sans", sans-serif`,
 
+  intersection: {
+    // whereas 1 === 100%
+    noIntersection: 1,
+    at75: 0.75,
+    at60: 0.6,
+    at45: 0.45,
+    at35: 0.35,
+    at20: 0.2,
+    at15: 0.15,
+    at10: 0.10
+  },
   breakpoint: {
     breakpointWideViewport: '1000px',
     breakpointNarrowViewport: '600px',
     breakpointExtensionButtonPadding: '720px',
     breakpointSmallWin32: '650px',
     breakpointTinyWin32: '500px',
-    breakpointNewPrivateTab: '890px',
-    tab: {
-      dynamic: '99999px', // add a large number as new spec will set tab width based on window size
-      default: '184px', // match tabArea max-width
-      large: '120px',
-      largeMedium: '83px',
-      medium: '66px',
-      mediumSmall: '53px',
-      small: '46px',
-      extraSmall: '40px',
-      smallest: '19px'
-    }
+    breakpointNewPrivateTab: '890px'
   },
   color: {
     commonTextColor: '#3b3b3b',
     linkColor: '#0099CC',
     highlightBlue: '#37A9FD',
-    privateTabBackground: '#665296',
-    privateTabBackgroundActive: '#4b3c6e',
     bitcoinOrange: '#f7931a',
     chromePrimary: '#F3F3F3',
     chromeSecondary: '#d3d3d3',
@@ -127,6 +116,7 @@ const globalStyles = {
     carotRadius: '8px'
   },
   spacing: {
+    sentinelSize: '120px',
     navigatorHeight: '48px',
     defaultSpacing: '12px',
     defaultFontSize: '13px',
@@ -170,7 +160,7 @@ const globalStyles = {
     aboutPageSectionPadding: '24px',
     aboutPageSectionMargin: '10px',
     defaultTabPadding: '0 4px',
-    defaultIconPadding: '2px',
+    defaultIconPadding: '0 2px',
     iconSize: '16px',
     closeIconSize: '13px',
     narrowIconSize: '12px',
@@ -211,8 +201,7 @@ const globalStyles = {
     transitionFastEase: 'all 100ms ease',
     transitionSlowEase: 'all 1s ease',
     switchBGTransition: 'background-color 100ms',
-    switchNubTransition: 'right 100ms',
-    tabBackgroundTransition: 'background-color 100ms linear'
+    switchNubTransition: 'right 100ms'
   },
   zindex: {
     zindexWindowNotActive: '900',
@@ -220,6 +209,7 @@ const globalStyles = {
     zindexWindowIsPreview: '1100',
     zindexDownloadsBar: '1000',
     zindexTabs: '1000',
+    zindexTabsAudioTopBorder: '10001',
     zindexTabsThumbnail: '1100',
     zindexTabsDragIndicator: '1100',
     zindexNavigationBar: '2000',
@@ -245,13 +235,10 @@ const globalStyles = {
     angleDoubleRight: 'fa fa-angle-double-right',
     clipboard: 'fa fa-clipboard',
     closeTab: 'fa fa-times-circle',
-    defaultIcon: 'fa fa-file-o',
     exclude: 'fa fa-ban',
     findNext: 'fa fa-caret-down',
     findPrev: 'fa fa-caret-up',
-    loading: 'fa fa-spinner fa-spin',
     moreInfo: 'fa fa-info-circle',
-    private: 'fa fa-eye',
     question: 'fa fa-question-circle',
     refresh: 'fa fa-refresh',
     remove: 'fa fa-times',
@@ -262,7 +249,7 @@ const globalStyles = {
   animations: {
     subtleShowUp: {
       opacity: 0,
-      animationName: opacityIncreaseKeyframes,
+      animationName: opacityKeyrames(0, 1),
       animationDelay: '120ms',
       animationTimingFunction: 'linear',
       animationDuration: '120ms',

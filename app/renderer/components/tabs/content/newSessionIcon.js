@@ -4,61 +4,55 @@
 
 const React = require('react')
 const {StyleSheet, css} = require('aphrodite/no-important')
-const Immutable = require('immutable')
 
 // Components
 const ReduxComponent = require('../../reduxComponent')
 const TabIcon = require('./tabIcon')
 
 // State
-const tabContentState = require('../../../../common/state/tabContentState')
-
-// Constants
-const {tabs} = require('../../../../../js/constants/config')
-
-// Utils
+const partitionState = require('../../../../common/state/tabContentState/partitionState')
+const tabUIState = require('../../../../common/state/tabUIState')
+const tabState = require('../../../../common/state/tabState')
 const frameStateUtil = require('../../../../../js/state/frameStateUtil')
 
 // Styles
-const tabStyles = require('../../styles/tab')
 const newSessionSvg = require('../../../../extensions/brave/img/tabs/new_session.svg')
 
 class NewSessionIcon extends React.Component {
   mergeProps (state, ownProps) {
     const currentWindow = state.get('currentWindow')
     const frameKey = ownProps.frameKey
-    const frame = frameStateUtil.getFrameByKey(currentWindow, frameKey) || Immutable.Map()
-    const partition = frame.get('partitionNumber')
+    const tabId = frameStateUtil.getTabIdByFrameKey(currentWindow, frameKey)
 
     const props = {}
-    // used in renderer
+    props.isPinned = tabState.isTabPinned(state, tabId)
+    props.showPartitionIcon = tabUIState.showTabEndIcon(currentWindow, frameKey)
     props.isActive = frameStateUtil.isFrameKeyActive(currentWindow, frameKey)
-    props.iconColor = tabContentState.getTabIconColor(currentWindow, frameKey)
-    props.partitionNumber = typeof partition === 'string'
-      ? partition.replace(/^partition-/i, '')
-      : partition
-    props.partitionIndicator = props.partitionNumber > tabs.maxAllowedNewSessions
-      ? tabs.maxAllowedNewSessions
-      : props.partitionNumber
-
-    // used in functions
-    props.frameKey = frameKey
+    props.textIsWhite = tabUIState.checkIfTextColorBlackOrWhite(currentWindow, frameKey, 'white')
+    props.partitionNumber = partitionState.getMaxAllowedPartitionNumber(currentWindow, frameKey)
 
     return props
   }
 
   render () {
-    const newSession = StyleSheet.create({
-      indicator: {
-        // Based on getTextColorForBackground() icons can be only black or white.
-        filter: this.props.isActive && this.props.iconColor === 'white' ? 'invert(100%)' : 'none'
+    if (
+      this.props.isPinned ||
+      !this.props.showPartitionIcon ||
+      this.props.partitionNumber === 0
+    ) {
+      return null
+    }
+
+    const newSessionProps = StyleSheet.create({
+      newSession__indicator: {
+        filter: this.props.isActive && this.props.textIsWhite ? 'invert(100%)' : 'none'
       }
     })
 
     return <TabIcon symbol
       data-test-id='newSessionIcon'
-      className={css(tabStyles.icon, styles.newSession, newSession.indicator)}
-      symbolContent={this.props.partitionIndicator}
+      className={css(styles.newSession__icon, newSessionProps.newSession__indicator)}
+      symbolContent={this.props.partitionNumber}
       l10nArgs={this.props.partitionNumber}
       l10nId='sessionInfoTab'
     />
@@ -68,9 +62,15 @@ class NewSessionIcon extends React.Component {
 module.exports = ReduxComponent.connect(NewSessionIcon)
 
 const styles = StyleSheet.create({
-  newSession: {
-    position: 'relative',
+  newSession__icon: {
+    boxSizing: 'border-box',
     backgroundImage: `url(${newSessionSvg})`,
-    backgroundPosition: 'left'
+    backgroundSize: '13px',
+    backgroundPosition: 'center left',
+    backgroundRepeat: 'no-repeat',
+    display: 'flex',
+    width: '100%',
+    height: '100%',
+    alignItems: 'center'
   }
 })

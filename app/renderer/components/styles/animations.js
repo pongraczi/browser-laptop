@@ -11,16 +11,26 @@ const spinKeyframes = {
   }
 }
 
-const opacityIncreaseKeyframes = {
+const opacityKeyrames = (start, end) => ({
   'from': {
-    opacity: 0
+    opacity: start
   },
   'to': {
-    opacity: 1
+    opacity: end
   }
-}
+})
+
+const widthChangeKeyframes = (start, end) => ({
+  'from': {
+    width: start
+  },
+  'to': {
+    width: end
+  }
+})
 
 module.exports = {
   spinKeyframes,
-  opacityIncreaseKeyframes
+  opacityKeyrames,
+  widthChangeKeyframes
 }
